@@ -9,6 +9,17 @@ class TransactionsNotifier extends StateNotifier<List<Transaction>> {
     state = [transaction, ...state]
       ..sort((a, b) => b.date.compareTo(a.date));
   }
+
+  void update(Transaction transaction) {
+    state = [
+      for (final t in state)
+        if (t.id == transaction.id) transaction else t,
+    ]..sort((a, b) => b.date.compareTo(a.date));
+  }
+
+  void delete(String id) {
+    state = state.where((t) => t.id != id).toList();
+  }
 }
 
 final transactionsProvider =

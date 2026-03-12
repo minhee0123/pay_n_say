@@ -23,6 +23,26 @@ class Transaction {
 
   String get formattedDate =>
       '${date.year}.${date.month.toString().padLeft(2, '0')}.${date.day.toString().padLeft(2, '0')}';
+
+  Transaction copyWith({
+    String? id,
+    String? title,
+    DateTime? date,
+    int? amount,
+    TransactionType? type,
+    IconData? icon,
+    Color? iconColor,
+  }) {
+    return Transaction(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      date: date ?? this.date,
+      amount: amount ?? this.amount,
+      type: type ?? this.type,
+      icon: icon ?? this.icon,
+      iconColor: iconColor ?? this.iconColor,
+    );
+  }
 }
 
 class TransactionCategory {

@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:pay_n_say/features/ledger/domain/models/transaction.dart';
 import 'package:pay_n_say/features/ledger/presentation/pages/day_detail_page.dart';
 import 'package:pay_n_say/features/ledger/presentation/pages/ledger_main_page.dart';
 import 'package:pay_n_say/features/ledger/presentation/pages/manual_entry_page.dart';
@@ -20,6 +21,13 @@ final appRouter = GoRouter(
       builder: (context, state) {
         final initialDate = state.extra as DateTime?;
         return ManualEntryPage(initialDate: initialDate);
+      },
+    ),
+    GoRoute(
+      path: '/edit',
+      builder: (context, state) {
+        final tx = state.extra as Transaction;
+        return ManualEntryPage(editTransaction: tx);
       },
     ),
     GoRoute(

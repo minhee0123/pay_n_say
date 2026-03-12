@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pay_n_say/core/theme/app_theme.dart';
 import 'package:pay_n_say/features/ledger/domain/models/transaction.dart';
 import 'package:pay_n_say/features/ledger/presentation/providers/ledger_provider.dart';
 
 class ManualEntryPage extends ConsumerStatefulWidget {
   final DateTime? initialDate;
+  final Transaction? editTransaction;
 
-  const ManualEntryPage({super.key, this.initialDate});
+  const ManualEntryPage({super.key, this.initialDate, this.editTransaction});
 
   @override
   ConsumerState<ManualEntryPage> createState() => _ManualEntryPageState();
@@ -27,11 +29,28 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
           ? expenseCategories
           : incomeCategories;
 
+  bool get _isEditing => widget.editTransaction != null;
+  bool get _isExpense => _selectedType == TransactionType.expense;
+  Color get _typeColor => _isExpense ? AppColors.expense : AppColors.income;
+
   @override
   void initState() {
     super.initState();
-    _selectedDate = widget.initialDate ?? DateTime.now();
-    _selectedCategory = expenseCategories.first;
+    final tx = widget.editTransaction;
+    if (tx != null) {
+      _selectedType = tx.type;
+      _selectedDate = tx.date;
+      _titleController.text = tx.title;
+      _amountController.text = tx.amount.toString();
+      // 기존 카테고리 매칭
+      _selectedCategory = _categories.firstWhere(
+        (c) => c.icon == tx.icon && c.color == tx.iconColor,
+        orElse: () => _categories.first,
+      );
+    } else {
+      _selectedDate = widget.initialDate ?? DateTime.now();
+      _selectedCategory = expenseCategories.first;
+    }
   }
 
   @override
@@ -47,6 +66,14 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
       initialDate: _selectedDate,
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: Theme.of(context)
+              .colorScheme
+              .copyWith(primary: AppColors.accent),
+        ),
+        child: child!,
+      ),
     );
     if (picked != null) setState(() => _selectedDate = picked);
   }
@@ -62,7 +89,8 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
     if (!_formKey.currentState!.validate()) return;
 
     final tx = Transaction(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: widget.editTransaction?.id ??
+          DateTime.now().millisecondsSinceEpoch.toString(),
       title: _titleController.text.trim(),
       date: _selectedDate,
       amount: int.parse(_amountController.text.replaceAll(',', '')),
@@ -71,7 +99,12 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
       iconColor: _selectedCategory.color,
     );
 
-    ref.read(transactionsProvider.notifier).add(tx);
+    final notifier = ref.read(transactionsProvider.notifier);
+    if (_isEditing) {
+      notifier.update(tx);
+    } else {
+      notifier.add(tx);
+    }
     Navigator.of(context).pop();
   }
 
@@ -80,157 +113,259 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('직접 입력'),
-        centerTitle: true,
-        backgroundColor: colorScheme.primary,
-        foregroundColor: colorScheme.onPrimary,
+        title: Text(_isEditing ? '내역 수정' : '직접 입력'),
+        centerTitle: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
-      body: Form(
+      body: SafeArea(
+        child: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
           children: [
-            // 수입/지출 토글
-            SegmentedButton<TransactionType>(
-              segments: const [
-                ButtonSegment(
-                  value: TransactionType.expense,
-                  label: Text('지출'),
-                  icon: Icon(Icons.remove_circle_outline),
-                ),
-                ButtonSegment(
-                  value: TransactionType.income,
-                  label: Text('수입'),
-                  icon: Icon(Icons.add_circle_outline),
-                ),
-              ],
-              selected: {_selectedType},
-              onSelectionChanged: (set) => _onTypeChanged(set.first),
-            ),
-            const SizedBox(height: 24),
-
-            // 상호명
-            const _SectionLabel('상호명'),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _titleController,
-              decoration: _inputDecoration('예) 스타벅스', Icons.storefront),
-              textInputAction: TextInputAction.next,
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? '상호명을 입력해 주세요.' : null,
-            ),
-            const SizedBox(height: 20),
-
-            // 카테고리
-            const _SectionLabel('카테고리'),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<TransactionCategory>(
-              value: _selectedCategory,
-              decoration: _inputDecoration('카테고리 선택', Icons.category),
-              items: _categories.map((cat) {
-                return DropdownMenuItem(
-                  value: cat,
-                  child: Row(
-                    children: [
-                      Icon(cat.icon, color: cat.color, size: 20),
-                      const SizedBox(width: 10),
-                      Text(cat.label),
-                    ],
+            // ── 지출 / 수입 토글 ────────────────────────────
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: AppTheme.cardShadow,
+              ),
+              padding: const EdgeInsets.all(6),
+              child: Row(
+                children: [
+                  _TypeTab(
+                    label: '지출',
+                    icon: Icons.remove_rounded,
+                    selected: _isExpense,
+                    selectedColor: AppColors.expense,
+                    onTap: () => _onTypeChanged(TransactionType.expense),
                   ),
-                );
-              }).toList(),
-              onChanged: (cat) {
-                if (cat != null) setState(() => _selectedCategory = cat);
-              },
-            ),
-            const SizedBox(height: 20),
-
-            // 날짜
-            const _SectionLabel('날짜'),
-            const SizedBox(height: 8),
-            GestureDetector(
-              onTap: _pickDate,
-              child: AbsorbPointer(
-                child: TextFormField(
-                  decoration:
-                      _inputDecoration(_formattedDate, Icons.calendar_today),
-                  controller:
-                      TextEditingController(text: _formattedDate),
-                ),
+                  _TypeTab(
+                    label: '수입',
+                    icon: Icons.add_rounded,
+                    selected: !_isExpense,
+                    selectedColor: AppColors.income,
+                    onTap: () => _onTypeChanged(TransactionType.income),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 20),
 
-            // 금액
-            const _SectionLabel('금액'),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _amountController,
-              decoration: _inputDecoration('예) 12000', Icons.attach_money),
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              validator: (v) {
-                if (v == null || v.isEmpty) return '금액을 입력해 주세요.';
-                if (int.tryParse(v) == null) return '숫자만 입력 가능합니다.';
-                return null;
-              },
-            ),
-            const SizedBox(height: 40),
+            // ── 입력 카드 ──────────────────────────────────
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: AppTheme.cardShadow,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 상호명
+                  const _FieldLabel('상호명'),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _titleController,
+                    decoration: const InputDecoration(
+                      hintText: '예) 스타벅스',
+                      prefixIcon: Icon(Icons.storefront_rounded),
+                    ),
+                    textInputAction: TextInputAction.next,
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? '상호명을 입력해 주세요.'
+                        : null,
+                  ),
+                  const SizedBox(height: 20),
 
-            // 저장 버튼
+                  // 카테고리
+                  const _FieldLabel('카테고리'),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<TransactionCategory>(
+                    value: _selectedCategory,
+                    decoration: const InputDecoration(
+                      hintText: '카테고리 선택',
+                      prefixIcon: Icon(Icons.category_rounded),
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                    items: _categories.map((cat) {
+                      return DropdownMenuItem(
+                        value: cat,
+                        child: Row(
+                          children: [
+                            Icon(cat.icon, color: cat.color, size: 18),
+                            const SizedBox(width: 10),
+                            Text(cat.label,
+                                style: const TextStyle(fontSize: 14)),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (cat) {
+                      if (cat != null) {
+                        setState(() => _selectedCategory = cat);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 20),
+
+                  // 날짜
+                  const _FieldLabel('날짜'),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: _pickDate,
+                    child: AbsorbPointer(
+                      child: TextFormField(
+                        decoration: InputDecoration(
+                          hintText: _formattedDate,
+                          prefixIcon:
+                              const Icon(Icons.calendar_today_rounded),
+                        ),
+                        controller:
+                            TextEditingController(text: _formattedDate),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // 금액
+                  const _FieldLabel('금액'),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _amountController,
+                    decoration: const InputDecoration(
+                      hintText: '예) 12000',
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.only(left: 14, right: 8),
+                        child: Text('₩',
+                            style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textSecondary)),
+                      ),
+                      prefixIconConstraints:
+                          const BoxConstraints(minWidth: 0, minHeight: 0),
+                      suffixText: '원',
+                    ),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly
+                    ],
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.w600),
+                    validator: (v) {
+                      if (v == null || v.isEmpty) return '금액을 입력해 주세요.';
+                      if (int.tryParse(v) == null) return '숫자만 입력 가능합니다.';
+                      return null;
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 28),
+
+            // ── 저장 버튼 ──────────────────────────────────
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: _save,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _selectedType == TransactionType.expense
-                      ? colorScheme.primary
-                      : Colors.green[700],
+                  backgroundColor: _typeColor,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                      borderRadius: BorderRadius.circular(16)),
+                  elevation: 0,
                   textStyle: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                      fontSize: 15, fontWeight: FontWeight.w700),
                 ),
-                child: Text(_selectedType == TransactionType.expense
-                    ? '지출 저장'
-                    : '수입 저장'),
+                child: Text(_isEditing
+                    ? '수정 완료'
+                    : (_isExpense ? '지출 저장하기' : '수입 저장하기')),
               ),
             ),
           ],
         ),
+        ),
       ),
-    );
-  }
-
-  InputDecoration _inputDecoration(String hint, IconData icon) {
-    return InputDecoration(
-      hintText: hint,
-      prefixIcon: Icon(icon),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
   }
 }
 
-class _SectionLabel extends StatelessWidget {
+// ─── Type Tab ─────────────────────────────────────────────────────────────────
+
+class _TypeTab extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool selected;
+  final Color selectedColor;
+  final VoidCallback onTap;
+
+  const _TypeTab({
+    required this.label,
+    required this.icon,
+    required this.selected,
+    required this.selectedColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: selected
+                ? selectedColor.withOpacity(0.12)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon,
+                  size: 18,
+                  color: selected ? selectedColor : AppColors.textSecondary),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color:
+                      selected ? selectedColor : AppColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FieldLabel extends StatelessWidget {
   final String text;
-  const _SectionLabel(this.text);
+  const _FieldLabel(this.text);
 
   @override
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+      style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textSecondary),
     );
   }
 }
