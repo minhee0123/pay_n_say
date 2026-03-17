@@ -1,12 +1,35 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive/hive.dart';
 import 'package:pay_n_say/core/theme/app_theme.dart';
 import 'package:pay_n_say/features/ledger/presentation/pages/day_detail_page.dart';
+import 'package:pay_n_say/features/ledger/presentation/providers/ledger_provider.dart';
 
 void main() {
+  late Box box;
+  late Directory tempDir;
+
+  setUp(() async {
+    tempDir = await Directory.systemTemp.createTemp('hive_day_test_');
+    Hive.init(tempDir.path);
+    box = await Hive.openBox('day_test_${DateTime.now().millisecondsSinceEpoch}');
+  });
+
+  tearDown(() async {
+    await box.deleteFromDisk();
+    if (tempDir.existsSync()) {
+      tempDir.deleteSync(recursive: true);
+    }
+  });
+
   Widget buildTestWidget(DateTime date) {
     return ProviderScope(
+      overrides: [
+        hiveBoxProvider.overrideWithValue(box),
+      ],
       child: MaterialApp(
         theme: AppTheme.light,
         home: DayDetailPage(date: date),

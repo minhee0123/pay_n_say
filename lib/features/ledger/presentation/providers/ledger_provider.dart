@@ -1,16 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive/hive.dart';
 import 'package:pay_n_say/features/ledger/domain/models/transaction.dart';
 
+/// main.dart에서 Hive box를 열어 override로 주입
+final hiveBoxProvider = Provider<Box>((ref) => throw UnimplementedError());
+
 class TransactionsNotifier extends StateNotifier<List<Transaction>> {
-  TransactionsNotifier() : super(_initialData);
+  final Box _box;
+
+  TransactionsNotifier(this._box) : super(_loadOrSeed(_box));
+
+  static List<Transaction> _loadOrSeed(Box box) {
+    if (box.isNotEmpty) {
+      return box.values
+          .map((v) => Transaction.fromMap(v as Map<dynamic, dynamic>))
+          .toList()
+        ..sort((a, b) => b.date.compareTo(a.date));
+    }
+    // 첫 실행: 샘플 데이터 저장
+    for (final t in _initialData) {
+      box.put(t.id, t.toMap());
+    }
+    return List.of(_initialData);
+  }
 
   void add(Transaction transaction) {
+    _box.put(transaction.id, transaction.toMap());
     state = [transaction, ...state]
       ..sort((a, b) => b.date.compareTo(a.date));
   }
 
   void update(Transaction transaction) {
+    _box.put(transaction.id, transaction.toMap());
     state = [
       for (final t in state)
         if (t.id == transaction.id) transaction else t,
@@ -18,13 +40,14 @@ class TransactionsNotifier extends StateNotifier<List<Transaction>> {
   }
 
   void delete(String id) {
+    _box.delete(id);
     state = state.where((t) => t.id != id).toList();
   }
 }
 
 final transactionsProvider =
     StateNotifierProvider<TransactionsNotifier, List<Transaction>>(
-  (ref) => TransactionsNotifier(),
+  (ref) => TransactionsNotifier(ref.read(hiveBoxProvider)),
 );
 
 final transactionsForDayProvider =

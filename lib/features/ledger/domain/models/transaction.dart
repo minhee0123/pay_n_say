@@ -24,6 +24,34 @@ class Transaction {
   String get formattedDate =>
       '${date.year}.${date.month.toString().padLeft(2, '0')}.${date.day.toString().padLeft(2, '0')}';
 
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'date': date.millisecondsSinceEpoch,
+      'amount': amount,
+      'type': type.index,
+      'iconCodePoint': icon.codePoint,
+      'iconFontFamily': icon.fontFamily,
+      'iconColor': iconColor.value,
+    };
+  }
+
+  factory Transaction.fromMap(Map<dynamic, dynamic> map) {
+    return Transaction(
+      id: map['id'] as String,
+      title: map['title'] as String,
+      date: DateTime.fromMillisecondsSinceEpoch(map['date'] as int),
+      amount: map['amount'] as int,
+      type: TransactionType.values[map['type'] as int],
+      icon: IconData(
+        map['iconCodePoint'] as int,
+        fontFamily: map['iconFontFamily'] as String?,
+      ),
+      iconColor: Color(map['iconColor'] as int),
+    );
+  }
+
   Transaction copyWith({
     String? id,
     String? title,

@@ -1,18 +1,34 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive/hive.dart';
 import 'package:pay_n_say/features/ledger/domain/models/transaction.dart';
 import 'package:pay_n_say/features/ledger/presentation/providers/ledger_provider.dart';
 
 void main() {
   late ProviderContainer container;
+  late Box box;
+  late Directory tempDir;
 
-  setUp(() {
-    container = ProviderContainer();
+  setUp(() async {
+    tempDir = await Directory.systemTemp.createTemp('hive_test_');
+    Hive.init(tempDir.path);
+    box = await Hive.openBox('transactions_test_${DateTime.now().millisecondsSinceEpoch}');
+    container = ProviderContainer(
+      overrides: [
+        hiveBoxProvider.overrideWithValue(box),
+      ],
+    );
   });
 
-  tearDown(() {
+  tearDown(() async {
     container.dispose();
+    await box.deleteFromDisk();
+    if (tempDir.existsSync()) {
+      tempDir.deleteSync(recursive: true);
+    }
   });
 
   Transaction _makeTx({
@@ -45,6 +61,12 @@ void main() {
       expect(transactions.any((t) => t.title == '스타벅스'), isTrue);
     });
 
+    test('초기 데이터가 Hive에 저장됨', () {
+      container.read(transactionsProvider); // trigger init
+      expect(box.isNotEmpty, isTrue);
+      expect(box.length, 9);
+    });
+
     test('add: 새 내역 추가', () {
       final notifier = container.read(transactionsProvider.notifier);
       final tx = _makeTx();
@@ -54,6 +76,13 @@ void main() {
       final transactions = container.read(transactionsProvider);
       expect(transactions.length, 10);
       expect(transactions.any((t) => t.id == 'test-1'), isTrue);
+    });
+
+    test('add: Hive에도 저장됨', () {
+      final notifier = container.read(transactionsProvider.notifier);
+      notifier.add(_makeTx());
+
+      expect(box.get('test-1'), isNotNull);
     });
 
     test('add: 추가 후에도 날짜 내림차순 유지', () {
@@ -83,6 +112,15 @@ void main() {
       expect(transactions.length, 9);
     });
 
+    test('update: Hive에도 반영됨', () {
+      final notifier = container.read(transactionsProvider.notifier);
+      final original = container.read(transactionsProvider).first;
+      notifier.update(original.copyWith(title: '변경'));
+
+      final saved = box.get(original.id) as Map;
+      expect(saved['title'], '변경');
+    });
+
     test('delete: 내역 삭제', () {
       final notifier = container.read(transactionsProvider.notifier);
       final firstId = container.read(transactionsProvider).first.id;
@@ -92,6 +130,14 @@ void main() {
       final transactions = container.read(transactionsProvider);
       expect(transactions.length, 8);
       expect(transactions.any((t) => t.id == firstId), isFalse);
+    });
+
+    test('delete: Hive에서도 삭제됨', () {
+      final notifier = container.read(transactionsProvider.notifier);
+      final firstId = container.read(transactionsProvider).first.id;
+      notifier.delete(firstId);
+
+      expect(box.get(firstId), isNull);
     });
 
     test('delete: 존재하지 않는 id 삭제시 변화 없음', () {

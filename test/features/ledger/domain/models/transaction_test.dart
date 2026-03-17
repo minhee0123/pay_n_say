@@ -62,6 +62,46 @@ void main() {
       final updated = transaction.copyWith(type: TransactionType.income);
       expect(updated.type, TransactionType.income);
     });
+
+    test('toMap 직렬화', () {
+      final map = transaction.toMap();
+      expect(map['id'], '1');
+      expect(map['title'], '스타벅스');
+      expect(map['amount'], 6500);
+      expect(map['type'], TransactionType.expense.index);
+      expect(map['date'], isA<int>());
+      expect(map['iconCodePoint'], isA<int>());
+      expect(map['iconColor'], isA<int>());
+    });
+
+    test('fromMap 역직렬화', () {
+      final map = transaction.toMap();
+      final restored = Transaction.fromMap(map);
+      expect(restored.id, transaction.id);
+      expect(restored.title, transaction.title);
+      expect(restored.amount, transaction.amount);
+      expect(restored.type, transaction.type);
+      expect(restored.date, transaction.date);
+      expect(restored.icon.codePoint, transaction.icon.codePoint);
+      expect(restored.iconColor.value, transaction.iconColor.value);
+    });
+
+    test('toMap → fromMap 라운드트립', () {
+      final income = Transaction(
+        id: 'rt-1',
+        title: '급여',
+        date: DateTime(2026, 1, 15),
+        amount: 3000000,
+        type: TransactionType.income,
+        icon: Icons.account_balance_wallet,
+        iconColor: Colors.blue,
+      );
+      final restored = Transaction.fromMap(income.toMap());
+      expect(restored.id, income.id);
+      expect(restored.title, income.title);
+      expect(restored.amount, income.amount);
+      expect(restored.type, TransactionType.income);
+    });
   });
 
   group('TransactionCategory', () {
