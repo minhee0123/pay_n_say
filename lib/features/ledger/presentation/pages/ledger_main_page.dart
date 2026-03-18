@@ -249,6 +249,15 @@ class _SummaryHeader extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.menu_book_rounded,
+                        color: Colors.white, size: 22),
+                    tooltip: '영어 학습',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () => context.push('/english'),
+                  ),
+                  const SizedBox(width: 10),
                   Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 12, vertical: 5),

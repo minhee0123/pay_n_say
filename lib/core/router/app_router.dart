@@ -1,4 +1,7 @@
 import 'package:go_router/go_router.dart';
+import 'package:pay_n_say/features/english_learning/presentation/pages/english_learning_page.dart';
+import 'package:pay_n_say/features/english_learning/presentation/pages/quiz_page.dart';
+import 'package:pay_n_say/features/english_learning/presentation/pages/word_list_page.dart';
 import 'package:pay_n_say/features/ledger/domain/models/transaction.dart';
 import 'package:pay_n_say/features/ledger/presentation/pages/day_detail_page.dart';
 import 'package:pay_n_say/features/ledger/presentation/pages/ledger_main_page.dart';
@@ -37,6 +40,18 @@ final appRouter = GoRouter(
         final date = DateTime.parse(dateStr);
         return DayDetailPage(date: date);
       },
+    ),
+    GoRoute(
+      path: '/english',
+      builder: (context, state) => const EnglishLearningPage(),
+    ),
+    GoRoute(
+      path: '/english/words',
+      builder: (context, state) => const WordListPage(),
+    ),
+    GoRoute(
+      path: '/english/quiz',
+      builder: (context, state) => const QuizPage(),
     ),
   ],
 );

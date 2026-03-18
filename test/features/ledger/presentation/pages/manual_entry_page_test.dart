@@ -1,29 +1,18 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hive/hive.dart';
 import 'package:pay_n_say/core/theme/app_theme.dart';
 import 'package:pay_n_say/features/ledger/domain/models/transaction.dart';
 import 'package:pay_n_say/features/ledger/presentation/pages/manual_entry_page.dart';
 import 'package:pay_n_say/features/ledger/presentation/providers/ledger_provider.dart';
 
+import '../../../../helpers/fake_box.dart';
+
 void main() {
-  late Box box;
-  late Directory tempDir;
+  late FakeBox box;
 
-  setUp(() async {
-    tempDir = await Directory.systemTemp.createTemp('hive_entry_test_');
-    Hive.init(tempDir.path);
-    box = await Hive.openBox('entry_test_${DateTime.now().millisecondsSinceEpoch}');
-  });
-
-  tearDown(() async {
-    await box.deleteFromDisk();
-    if (tempDir.existsSync()) {
-      tempDir.deleteSync(recursive: true);
-    }
+  setUp(() {
+    box = FakeBox();
   });
 
   Widget buildTestWidget({
