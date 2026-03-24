@@ -9,15 +9,15 @@ void main() {
     });
 
     test('income 색상', () {
-      expect(AppColors.income, const Color(0xFF00C896));
+      expect(AppColors.income, const Color(0xFF34C759));
     });
 
     test('expense 색상', () {
-      expect(AppColors.expense, const Color(0xFFFF4D6D));
+      expect(AppColors.expense, const Color(0xFFFF3B30));
     });
 
-    test('background 색상', () {
-      expect(AppColors.background, const Color(0xFFF7F8FC));
+    test('background는 흰색', () {
+      expect(AppColors.background, Colors.white);
     });
   });
 
@@ -28,8 +28,8 @@ void main() {
       expect(theme.useMaterial3, isTrue);
     });
 
-    test('scaffoldBackgroundColor가 AppColors.background', () {
-      expect(AppTheme.light.scaffoldBackgroundColor, AppColors.background);
+    test('scaffoldBackgroundColor가 흰색', () {
+      expect(AppTheme.light.scaffoldBackgroundColor, Colors.white);
     });
 
     test('primary 색상이 accent', () {
@@ -43,14 +43,12 @@ void main() {
 
     test('headerGradient 존재', () {
       expect(AppTheme.headerGradient, isA<LinearGradient>());
-      expect(AppTheme.headerGradient.colors,
-          contains(AppColors.gradientStart));
     });
 
-    test('appBarTheme 투명 배경', () {
+    test('appBarTheme 흰색 배경', () {
       expect(
         AppTheme.light.appBarTheme.backgroundColor,
-        Colors.transparent,
+        Colors.white,
       );
     });
 

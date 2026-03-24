@@ -23,21 +23,13 @@ class _QuizPageState extends ConsumerState<QuizPage> {
 
     if (questions.isEmpty) {
       return Scaffold(
-        backgroundColor: AppColors.background,
-        appBar: AppBar(
-          title: const Text('퀴즈'),
-          backgroundColor: Colors.white,
-          foregroundColor: AppColors.textPrimary,
-          elevation: 0,
-        ),
+        backgroundColor: Colors.white,
+        appBar: AppBar(title: const Text('퀴즈')),
         body: const Center(
           child: Text(
             '퀴즈를 생성할 수 없습니다.\n가계부에 내역을 추가해 주세요.',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 15,
-              color: AppColors.textSecondary,
-            ),
+            style: TextStyle(fontSize: 15, color: AppColors.textSecondary),
           ),
         ),
       );
@@ -63,13 +55,9 @@ class _QuizPageState extends ConsumerState<QuizPage> {
     final question = questions[_currentIndex];
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('퀴즈  ${_currentIndex + 1}/${questions.length}'),
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.textPrimary,
-        elevation: 0,
-        scrolledUnderElevation: 1,
+        title: Text('${_currentIndex + 1} / ${questions.length}'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
@@ -77,10 +65,10 @@ class _QuizPageState extends ConsumerState<QuizPage> {
           children: [
             // 진행률 바
             ClipRRect(
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(3),
               child: LinearProgressIndicator(
                 value: (_currentIndex + 1) / questions.length,
-                minHeight: 6,
+                minHeight: 4,
                 backgroundColor: AppColors.divider,
                 valueColor:
                     const AlwaysStoppedAnimation<Color>(AppColors.accent),
@@ -89,70 +77,49 @@ class _QuizPageState extends ConsumerState<QuizPage> {
             const SizedBox(height: 28),
 
             // 방향 표시
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: question.isKoreanToEnglish
-                    ? AppColors.accentLight
-                    : AppColors.incomeLight,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                question.isKoreanToEnglish ? '한국어 → English' : 'English → 한국어',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: question.isKoreanToEnglish
-                      ? AppColors.accent
-                      : AppColors.income,
-                ),
+            Text(
+              question.isKoreanToEnglish ? '한국어 → English' : 'English → 한국어',
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary,
               ),
             ),
             const SizedBox(height: 20),
 
-            // 문제 카드
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: AppTheme.cardShadow,
-              ),
-              child: Text(
-                question.prompt,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
-                  height: 1.4,
-                ),
+            // 문제
+            Text(
+              question.prompt,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+                height: 1.4,
               ),
             ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 36),
 
             // 선택지
             ...question.options.map((option) {
               final isCorrect = option == question.correctAnswer;
               final isSelected = option == _selectedAnswer;
 
-              Color bgColor = Colors.white;
               Color borderColor = AppColors.divider;
               Color textColor = AppColors.textPrimary;
+              Color bgColor = Colors.white;
 
               if (_answered) {
                 if (isCorrect) {
-                  bgColor = AppColors.incomeLight;
                   borderColor = AppColors.income;
                   textColor = AppColors.income;
+                  bgColor = AppColors.incomeLight;
                 } else if (isSelected) {
-                  bgColor = AppColors.expenseLight;
                   borderColor = AppColors.expense;
                   textColor = AppColors.expense;
+                  bgColor = AppColors.expenseLight;
                 }
               } else if (isSelected) {
-                bgColor = AppColors.accentLight;
                 borderColor = AppColors.accent;
                 textColor = AppColors.accent;
               }
@@ -172,7 +139,6 @@ class _QuizPageState extends ConsumerState<QuizPage> {
                               _wrongAnswers.add(question);
                             }
                           });
-                          // 단어장 진도 업데이트
                           _updateProgress(question, isCorrect);
                         },
                   child: Container(
@@ -181,7 +147,7 @@ class _QuizPageState extends ConsumerState<QuizPage> {
                         horizontal: 18, vertical: 14),
                     decoration: BoxDecoration(
                       color: bgColor,
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: borderColor, width: 1.5),
                     ),
                     child: Text(
@@ -212,14 +178,6 @@ class _QuizPageState extends ConsumerState<QuizPage> {
                       _answered = false;
                     });
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.accent,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
                   child: Text(
                     _currentIndex + 1 < questions.length ? '다음' : '결과 보기',
                     style: const TextStyle(
@@ -234,7 +192,6 @@ class _QuizPageState extends ConsumerState<QuizPage> {
   }
 
   void _updateProgress(QuizQuestion question, bool isCorrect) {
-    // 단어장 기반 문제인 경우 진도 업데이트
     final words = ref.read(wordBankProvider);
     final matchingWord = words.where((w) {
       return w.korean == question.prompt || w.english == question.prompt;
@@ -270,63 +227,45 @@ class _ResultScreen extends StatelessWidget {
     final isPerfect = score == total;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('퀴즈 결과'),
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.textPrimary,
-        elevation: 0,
-      ),
+      backgroundColor: Colors.white,
+      appBar: AppBar(title: const Text('퀴즈 결과')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            const SizedBox(height: 12),
-            // 점수 카드
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 32),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: AppTheme.cardShadow,
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    isPerfect ? '완벽해요!' : percentage >= 70 ? '잘했어요!' : '다시 도전!',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: isPerfect
-                          ? AppColors.income
-                          : percentage >= 70
-                              ? AppColors.accent
-                              : AppColors.expense,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    '$score / $total',
-                    style: const TextStyle(
-                      fontSize: 48,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
-                      letterSpacing: -1,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '$percentage점',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
+            const SizedBox(height: 20),
+            // 점수
+            Text(
+              isPerfect ? '완벽해요!' : percentage >= 70 ? '잘했어요!' : '다시 도전!',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: isPerfect
+                    ? AppColors.income
+                    : percentage >= 70
+                        ? AppColors.accent
+                        : AppColors.expense,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
+            Text(
+              '$score / $total',
+              style: const TextStyle(
+                fontSize: 48,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary,
+                letterSpacing: -1,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '$percentage점',
+              style: const TextStyle(
+                fontSize: 16,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 28),
 
             // 오답 리뷰
             if (wrongAnswers.isNotEmpty) ...[
@@ -344,12 +283,12 @@ class _ResultScreen extends StatelessWidget {
               const SizedBox(height: 10),
               ...wrongAnswers.map((q) => Container(
                     width: double.infinity,
-                    margin: const EdgeInsets.only(bottom: 10),
+                    margin: const EdgeInsets.only(bottom: 8),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: AppTheme.cardShadow,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.divider),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -383,22 +322,14 @@ class _ResultScreen extends StatelessWidget {
                       ],
                     ),
                   )),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
             ],
 
-            // 다시 하기 버튼
+            // 버튼
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: onRetry,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.accent,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
                 child: const Text(
                   '다시 하기',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),

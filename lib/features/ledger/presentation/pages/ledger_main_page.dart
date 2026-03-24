@@ -30,7 +30,7 @@ class _LedgerMainPageState extends ConsumerState<LedgerMainPage> {
       context: context,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (_) => SafeArea(
         child: Padding(
@@ -58,7 +58,6 @@ class _LedgerMainPageState extends ConsumerState<LedgerMainPage> {
               const SizedBox(height: 16),
               _SheetOption(
                 icon: Icons.document_scanner_outlined,
-                iconBg: AppColors.accentLight,
                 iconColor: AppColors.accent,
                 title: '영수증 스캔',
                 subtitle: '카메라 또는 갤러리로 인식',
@@ -70,7 +69,6 @@ class _LedgerMainPageState extends ConsumerState<LedgerMainPage> {
               const SizedBox(height: 10),
               _SheetOption(
                 icon: Icons.edit_note_rounded,
-                iconBg: AppColors.incomeLight,
                 iconColor: AppColors.income,
                 title: '직접 입력',
                 subtitle: '상호명, 금액 등을 직접 입력',
@@ -94,29 +92,28 @@ class _LedgerMainPageState extends ConsumerState<LedgerMainPage> {
     final monthlyIncome = ref.watch(monthlyIncomeProvider(_focusedDay));
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
         physics: const ClampingScrollPhysics(),
         child: Column(
         children: [
-          // ── 그라데이션 헤더 ──────────────────────────────────
           _SummaryHeader(
             focusedDay: _focusedDay,
             income: monthlyIncome,
             expense: monthlyExpense,
           ),
-          const SizedBox(height: 12),
-          // ── 캘린더 카드 ─────────────────────────────────────
+
+          // ── 캘린더 ─────────────────────────────────────
           Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: AppTheme.cardShadow,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.divider),
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(16),
                   child: TableCalendar<Transaction>(
                     firstDay: DateTime(2024, 1, 1),
                     lastDay: DateTime(2027, 12, 31),
@@ -167,7 +164,7 @@ class _LedgerMainPageState extends ConsumerState<LedgerMainPage> {
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
                               color: isWeekend
-                                  ? AppColors.expense.withOpacity(0.7)
+                                  ? AppColors.expense.withOpacity(0.6)
                                   : AppColors.textSecondary,
                             ),
                           ),
@@ -221,106 +218,81 @@ class _SummaryHeader extends StatelessWidget {
     final balance = income - expense;
     final isPositive = balance >= 0;
 
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: AppTheme.headerGradient,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(32),
-          bottomRight: Radius.circular(32),
-        ),
-      ),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Text(
-                    '가계부',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.5,
-                    ),
+    return SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 14, 20, 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Text(
+                  '가계부',
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.5,
                   ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.menu_book_rounded,
-                        color: Colors.white, size: 22),
-                    tooltip: '영어 학습',
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    onPressed: () => context.push('/english'),
-                  ),
-                  const SizedBox(width: 10),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.18),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      '${focusedDay.year}년 ${focusedDay.month}월',
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                '이번 달 잔액',
-                style: TextStyle(
-                    color: Colors.white.withOpacity(0.7),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                '${isPositive ? '+' : '-'}${_fmt(balance.abs())}원',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.8,
                 ),
-              ),
-              const SizedBox(height: 14),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.14),
-                  borderRadius: BorderRadius.circular(16),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.menu_book_rounded,
+                      color: AppColors.accent, size: 22),
+                  tooltip: '영어 학습',
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onPressed: () => context.push('/english'),
                 ),
-                child: Row(
-                  children: [
-                    _MiniStat(
-                        label: '수입',
-                        amount: income,
-                        color: const Color(0xFF6EFFD9)),
-                    Container(
-                        height: 24,
-                        width: 1,
-                        margin: const EdgeInsets.symmetric(horizontal: 16),
-                        color: Colors.white.withOpacity(0.2)),
-                    _MiniStat(
-                        label: '지출',
-                        amount: expense,
-                        color: const Color(0xFFFFB3BE)),
-                  ],
+                const SizedBox(width: 12),
+                Text(
+                  '${focusedDay.year}년 ${focusedDay.month}월',
+                  style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500),
                 ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            // 잔액
+            Text(
+              '이번 달 잔액',
+              style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              '${isPositive ? '+' : '-'}${_fmt(balance.abs())}원',
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 28,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.8,
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 14),
+            // 수입 / 지출 요약
+            Row(
+              children: [
+                _MiniStat(
+                    label: '수입',
+                    amount: income,
+                    color: AppColors.income),
+                const SizedBox(width: 24),
+                _MiniStat(
+                    label: '지출',
+                    amount: expense,
+                    color: AppColors.expense),
+              ],
+            ),
+            const SizedBox(height: 12),
+            const Divider(height: 1, color: AppColors.divider),
+          ],
         ),
       ),
     );
@@ -340,23 +312,26 @@ class _MiniStat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label,
-              style: TextStyle(
-                  color: Colors.white.withOpacity(0.65),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500)),
-          const SizedBox(height: 2),
-          Text('${_fmt(amount)}원',
-              style: TextStyle(
-                  color: color,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700)),
-        ],
-      ),
+    return Row(
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 6),
+        Text(label,
+            style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12,
+                fontWeight: FontWeight.w500)),
+        const SizedBox(width: 8),
+        Text('${_fmt(amount)}원',
+            style: TextStyle(
+                color: color,
+                fontSize: 14,
+                fontWeight: FontWeight.w700)),
+      ],
     );
   }
 }
@@ -365,7 +340,6 @@ class _MiniStat extends StatelessWidget {
 
 class _SheetOption extends StatelessWidget {
   final IconData icon;
-  final Color iconBg;
   final Color iconColor;
   final String title;
   final String subtitle;
@@ -373,7 +347,6 @@ class _SheetOption extends StatelessWidget {
 
   const _SheetOption({
     required this.icon,
-    required this.iconBg,
     required this.iconColor,
     required this.title,
     required this.subtitle,
@@ -383,23 +356,16 @@ class _SheetOption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.background,
-      borderRadius: BorderRadius.circular(16),
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                    color: iconBg,
-                    borderRadius: BorderRadius.circular(12)),
-                child: Icon(icon, color: iconColor, size: 22),
-              ),
+              Icon(icon, color: iconColor, size: 24),
               const SizedBox(width: 14),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -468,7 +434,7 @@ class _DayCell extends StatelessWidget {
     } else if (isToday) {
       dayColor = Colors.white;
     } else if (isWeekend) {
-      dayColor = AppColors.expense.withOpacity(0.8);
+      dayColor = AppColors.expense.withOpacity(0.7);
     } else {
       dayColor = AppColors.textPrimary;
     }

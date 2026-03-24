@@ -14,36 +14,42 @@ class EnglishLearningPage extends ConsumerWidget {
     final recentExpressions = ref.watch(recentEnglishExpressionsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text('영어 학습'),
+        centerTitle: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
       body: SingleChildScrollView(
         physics: const ClampingScrollPhysics(),
-        child: Column(
-          children: [
-            // ── 헤더 ──────────────────────────────────
-            _ProgressHeader(
-              learnedCount: learnedCount,
-              totalWords: totalWords,
-            ),
-            const SizedBox(height: 16),
-
-            // ── 오늘의 영어 표현 ──────────────────────
-            if (recentExpressions.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: _ExpressionsCard(expressions: recentExpressions),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── 학습 진도 ──────────────────────────────
+              _ProgressCard(
+                learnedCount: learnedCount,
+                totalWords: totalWords,
               ),
-            const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
-            // ── 메뉴 카드 ─────────────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
+              // ── 오늘의 영어 표현 ──────────────────────
+              if (recentExpressions.isNotEmpty) ...[
+                _ExpressionsCard(expressions: recentExpressions),
+                const SizedBox(height: 20),
+              ],
+
+              // ── 메뉴 ─────────────────────────────
+              Row(
                 children: [
                   Expanded(
                     child: _MenuCard(
                       icon: Icons.menu_book_rounded,
                       iconColor: AppColors.accent,
-                      iconBg: AppColors.accentLight,
                       title: '단어장',
                       subtitle: '$totalWords개 표현',
                       onTap: () => context.push('/english/words'),
@@ -54,7 +60,6 @@ class EnglishLearningPage extends ConsumerWidget {
                     child: _MenuCard(
                       icon: Icons.quiz_rounded,
                       iconColor: AppColors.income,
-                      iconBg: AppColors.incomeLight,
                       title: '퀴즈',
                       subtitle: '실력 테스트',
                       onTap: () => context.push('/english/quiz'),
@@ -62,21 +67,20 @@ class EnglishLearningPage extends ConsumerWidget {
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 24),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-// ── 진도 헤더 ───────────────────────────────────────────
-class _ProgressHeader extends StatelessWidget {
+// ── 진도 카드 ───────────────────────────────────────────
+class _ProgressCard extends StatelessWidget {
   final int learnedCount;
   final int totalWords;
 
-  const _ProgressHeader({
+  const _ProgressCard({
     required this.learnedCount,
     required this.totalWords,
   });
@@ -86,105 +90,68 @@ class _ProgressHeader extends StatelessWidget {
     final progress = totalWords > 0 ? learnedCount / totalWords : 0.0;
 
     return Container(
-      decoration: const BoxDecoration(
-        gradient: AppTheme.headerGradient,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(32),
-          bottomRight: Radius.circular(32),
-        ),
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.divider),
       ),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
-                    child: const Icon(Icons.arrow_back_rounded,
-                        color: Colors.white, size: 24),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    '영어 학습',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const Spacer(),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.18),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      'Pay N Say',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Text(
-                '학습한 단어',
+              Icon(Icons.school_rounded, color: AppColors.accent, size: 22),
+              const SizedBox(width: 8),
+              const Text(
+                '학습 진도',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.7),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '$learnedCount',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 36,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -1,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 6, left: 2),
-                    child: Text(
-                      '/ $totalWords개',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.6),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: LinearProgressIndicator(
-                  value: progress,
-                  minHeight: 8,
-                  backgroundColor: Colors.white.withOpacity(0.2),
-                  valueColor:
-                      const AlwaysStoppedAnimation<Color>(Colors.white),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
                 ),
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 16),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '$learnedCount',
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 36,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -1,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6, left: 2),
+                child: Text(
+                  '/ $totalWords개',
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 6,
+              backgroundColor: AppColors.divider,
+              valueColor:
+                  const AlwaysStoppedAnimation<Color>(AppColors.accent),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -203,24 +170,16 @@ class _ExpressionsCard extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: AppTheme.cardShadow,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.divider),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.accentLight,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(Icons.translate_rounded,
-                    color: AppColors.accent, size: 18),
-              ),
-              const SizedBox(width: 10),
+              Icon(Icons.translate_rounded, color: AppColors.accent, size: 20),
+              const SizedBox(width: 8),
               const Text(
                 '최근 지출 영어 표현',
                 style: TextStyle(
@@ -267,7 +226,6 @@ class _ExpressionsCard extends StatelessWidget {
 class _MenuCard extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
-  final Color iconBg;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
@@ -275,7 +233,6 @@ class _MenuCard extends StatelessWidget {
   const _MenuCard({
     required this.icon,
     required this.iconColor,
-    required this.iconBg,
     required this.title,
     required this.subtitle,
     required this.onTap,
@@ -289,20 +246,13 @@ class _MenuCard extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: AppTheme.cardShadow,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.divider),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: iconBg,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: iconColor, size: 24),
-            ),
+            Icon(icon, color: iconColor, size: 28),
             const SizedBox(height: 14),
             Text(
               title,

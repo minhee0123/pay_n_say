@@ -42,7 +42,6 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
       _selectedDate = tx.date;
       _titleController.text = tx.title;
       _amountController.text = tx.amount.toString();
-      // 기존 카테고리 매칭
       _selectedCategory = _categories.firstWhere(
         (c) => c.icon == tx.icon && c.color == tx.iconColor,
         orElse: () => _categories.first,
@@ -114,7 +113,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(_isEditing ? '내역 수정' : '직접 입력'),
         centerTitle: false,
@@ -130,146 +129,125 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
           children: [
             // ── 지출 / 수입 토글 ────────────────────────────
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: AppTheme.cardShadow,
+            Row(
+              children: [
+                _TypeTab(
+                  label: '지출',
+                  icon: Icons.remove_rounded,
+                  selected: _isExpense,
+                  selectedColor: AppColors.expense,
+                  onTap: () => _onTypeChanged(TransactionType.expense),
+                ),
+                const SizedBox(width: 8),
+                _TypeTab(
+                  label: '수입',
+                  icon: Icons.add_rounded,
+                  selected: !_isExpense,
+                  selectedColor: AppColors.income,
+                  onTap: () => _onTypeChanged(TransactionType.income),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // 상호명
+            const _FieldLabel('상호명'),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _titleController,
+              decoration: const InputDecoration(
+                hintText: '예) 스타벅스',
+                prefixIcon: Icon(Icons.storefront_rounded),
               ),
-              padding: const EdgeInsets.all(6),
-              child: Row(
-                children: [
-                  _TypeTab(
-                    label: '지출',
-                    icon: Icons.remove_rounded,
-                    selected: _isExpense,
-                    selectedColor: AppColors.expense,
-                    onTap: () => _onTypeChanged(TransactionType.expense),
+              textInputAction: TextInputAction.next,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? '상호명을 입력해 주세요.'
+                  : null,
+            ),
+            const SizedBox(height: 20),
+
+            // 카테고리
+            const _FieldLabel('카테고리'),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<TransactionCategory>(
+              value: _selectedCategory,
+              decoration: const InputDecoration(
+                hintText: '카테고리 선택',
+                prefixIcon: Icon(Icons.category_rounded),
+              ),
+              borderRadius: BorderRadius.circular(12),
+              items: _categories.map((cat) {
+                return DropdownMenuItem(
+                  value: cat,
+                  child: Row(
+                    children: [
+                      Icon(cat.icon, color: cat.color, size: 18),
+                      const SizedBox(width: 10),
+                      Text(cat.label,
+                          style: const TextStyle(fontSize: 14)),
+                    ],
                   ),
-                  _TypeTab(
-                    label: '수입',
-                    icon: Icons.add_rounded,
-                    selected: !_isExpense,
-                    selectedColor: AppColors.income,
-                    onTap: () => _onTypeChanged(TransactionType.income),
+                );
+              }).toList(),
+              onChanged: (cat) {
+                if (cat != null) {
+                  setState(() => _selectedCategory = cat);
+                }
+              },
+            ),
+            const SizedBox(height: 20),
+
+            // 날짜
+            const _FieldLabel('날짜'),
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: _pickDate,
+              child: AbsorbPointer(
+                child: TextFormField(
+                  decoration: InputDecoration(
+                    hintText: _formattedDate,
+                    prefixIcon:
+                        const Icon(Icons.calendar_today_rounded),
                   ),
-                ],
+                  controller:
+                      TextEditingController(text: _formattedDate),
+                ),
               ),
             ),
             const SizedBox(height: 20),
 
-            // ── 입력 카드 ──────────────────────────────────
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: AppTheme.cardShadow,
+            // 금액
+            const _FieldLabel('금액'),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _amountController,
+              decoration: const InputDecoration(
+                hintText: '예) 12000',
+                prefixIcon: Padding(
+                  padding: EdgeInsets.only(left: 14, right: 8),
+                  child: Text('₩',
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary)),
+                ),
+                prefixIconConstraints:
+                    BoxConstraints(minWidth: 0, minHeight: 0),
+                suffixText: '원',
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 상호명
-                  const _FieldLabel('상호명'),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    controller: _titleController,
-                    decoration: const InputDecoration(
-                      hintText: '예) 스타벅스',
-                      prefixIcon: Icon(Icons.storefront_rounded),
-                    ),
-                    textInputAction: TextInputAction.next,
-                    validator: (v) => (v == null || v.trim().isEmpty)
-                        ? '상호명을 입력해 주세요.'
-                        : null,
-                  ),
-                  const SizedBox(height: 20),
-
-                  // 카테고리
-                  const _FieldLabel('카테고리'),
-                  const SizedBox(height: 8),
-                  DropdownButtonFormField<TransactionCategory>(
-                    value: _selectedCategory,
-                    decoration: const InputDecoration(
-                      hintText: '카테고리 선택',
-                      prefixIcon: Icon(Icons.category_rounded),
-                    ),
-                    borderRadius: BorderRadius.circular(14),
-                    items: _categories.map((cat) {
-                      return DropdownMenuItem(
-                        value: cat,
-                        child: Row(
-                          children: [
-                            Icon(cat.icon, color: cat.color, size: 18),
-                            const SizedBox(width: 10),
-                            Text(cat.label,
-                                style: const TextStyle(fontSize: 14)),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (cat) {
-                      if (cat != null) {
-                        setState(() => _selectedCategory = cat);
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 20),
-
-                  // 날짜
-                  const _FieldLabel('날짜'),
-                  const SizedBox(height: 8),
-                  GestureDetector(
-                    onTap: _pickDate,
-                    child: AbsorbPointer(
-                      child: TextFormField(
-                        decoration: InputDecoration(
-                          hintText: _formattedDate,
-                          prefixIcon:
-                              const Icon(Icons.calendar_today_rounded),
-                        ),
-                        controller:
-                            TextEditingController(text: _formattedDate),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // 금액
-                  const _FieldLabel('금액'),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    controller: _amountController,
-                    decoration: const InputDecoration(
-                      hintText: '예) 12000',
-                      prefixIcon: Padding(
-                        padding: const EdgeInsets.only(left: 14, right: 8),
-                        child: Text('₩',
-                            style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textSecondary)),
-                      ),
-                      prefixIconConstraints:
-                          const BoxConstraints(minWidth: 0, minHeight: 0),
-                      suffixText: '원',
-                    ),
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly
-                    ],
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.w600),
-                    validator: (v) {
-                      if (v == null || v.isEmpty) return '금액을 입력해 주세요.';
-                      if (int.tryParse(v) == null) return '숫자만 입력 가능합니다.';
-                      return null;
-                    },
-                  ),
-                ],
-              ),
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly
+              ],
+              style: const TextStyle(
+                  fontSize: 18, fontWeight: FontWeight.w600),
+              validator: (v) {
+                if (v == null || v.isEmpty) return '금액을 입력해 주세요.';
+                if (int.tryParse(v) == null) return '숫자만 입력 가능합니다.';
+                return null;
+              },
             ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 32),
 
             // ── 저장 버튼 ──────────────────────────────────
             SizedBox(
@@ -281,7 +259,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
+                      borderRadius: BorderRadius.circular(14)),
                   elevation: 0,
                   textStyle: const TextStyle(
                       fontSize: 15, fontWeight: FontWeight.w700),
@@ -321,14 +299,16 @@ class _TypeTab extends StatelessWidget {
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+        child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
             color: selected
-                ? selectedColor.withOpacity(0.12)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
+                ? selectedColor.withOpacity(0.08)
+                : AppColors.divider,
+            borderRadius: BorderRadius.circular(10),
+            border: selected
+                ? Border.all(color: selectedColor.withOpacity(0.3))
+                : null,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,

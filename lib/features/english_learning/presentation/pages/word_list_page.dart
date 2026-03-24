@@ -20,19 +20,14 @@ class _WordListPageState extends ConsumerState<WordListPage> {
     final progressMap = ref.watch(learningProgressProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('단어장'),
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.textPrimary,
-        elevation: 0,
-        scrolledUnderElevation: 1,
       ),
       body: Column(
         children: [
           // ── 카테고리 필터 ───────────────────────────
-          Container(
-            color: Colors.white,
+          Padding(
             padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -57,7 +52,7 @@ class _WordListPageState extends ConsumerState<WordListPage> {
           // ── 단어 리스트 ─────────────────────────────
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
               itemCount: words.length,
               itemBuilder: (context, index) {
                 final word = words[index];
@@ -100,8 +95,11 @@ class _CategoryChip extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.accent : AppColors.background,
+            color: isSelected ? AppColors.textPrimary : Colors.white,
             borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isSelected ? AppColors.textPrimary : AppColors.divider,
+            ),
           ),
           child: Text(
             label,
@@ -143,12 +141,12 @@ class _WordCardState extends State<_WordCard> {
     return GestureDetector(
       onTap: () => setState(() => _expanded = !_expanded),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
+        margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: AppTheme.cardShadow,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.divider),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -162,7 +160,7 @@ class _WordCardState extends State<_WordCard> {
                         const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
                       color: AppColors.incomeLight,
-                      borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(4),
                     ),
                     child: const Text(
                       '완료',
@@ -211,8 +209,8 @@ class _WordCardState extends State<_WordCard> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: AppColors.accentLight.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.divider,
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

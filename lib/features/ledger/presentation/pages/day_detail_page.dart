@@ -15,7 +15,7 @@ class DayDetailPage extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('내역 삭제',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
         content: Text(
@@ -58,7 +58,7 @@ class DayDetailPage extends ConsumerWidget {
         '${date.month}월 ${date.day}일 ($weekday)';
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(title),
         centerTitle: false,
@@ -86,19 +86,11 @@ class DayDetailPage extends ConsumerWidget {
                         fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary)),
                 const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.accentLight,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text('${transactions.length}',
-                      style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.accent)),
-                ),
+                Text('${transactions.length}',
+                    style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.accent)),
               ],
             ),
           ),
@@ -147,11 +139,11 @@ class _DaySummaryCard extends StatelessWidget {
     final isPositive = balance >= 0;
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: AppTheme.cardShadow,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.divider),
       ),
       child: Row(
         children: [
@@ -159,27 +151,22 @@ class _DaySummaryCard extends StatelessWidget {
             label: '수입',
             value: '+${_fmt(income)}원',
             color: AppColors.income,
-            bgColor: AppColors.incomeLight,
           ),
           Container(
-              height: 36, width: 1, color: AppColors.divider,
+              height: 30, width: 1, color: AppColors.divider,
               margin: const EdgeInsets.symmetric(horizontal: 16)),
           _StatItem(
             label: '지출',
             value: '-${_fmt(expense)}원',
             color: AppColors.expense,
-            bgColor: AppColors.expenseLight,
           ),
           Container(
-              height: 36, width: 1, color: AppColors.divider,
+              height: 30, width: 1, color: AppColors.divider,
               margin: const EdgeInsets.symmetric(horizontal: 16)),
           _StatItem(
             label: '잔액',
             value: '${isPositive ? '+' : '-'}${_fmt(balance.abs())}원',
             color: isPositive ? AppColors.income : AppColors.expense,
-            bgColor: isPositive
-                ? AppColors.incomeLight
-                : AppColors.expenseLight,
           ),
         ],
       ),
@@ -191,13 +178,11 @@ class _StatItem extends StatelessWidget {
   final String label;
   final String value;
   final Color color;
-  final Color bgColor;
 
   const _StatItem({
     required this.label,
     required this.value,
     required this.color,
-    required this.bgColor,
   });
 
   @override
@@ -252,25 +237,17 @@ class _TransactionCard extends StatelessWidget {
       onTap: onTap,
       onLongPress: onDelete,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
+        margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: AppTheme.cardShadow,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.divider),
         ),
         child: Row(
           children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: transaction.iconColor.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(transaction.icon,
-                  color: transaction.iconColor, size: 22),
-            ),
+            Icon(transaction.icon,
+                color: transaction.iconColor, size: 24),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -296,9 +273,6 @@ class _TransactionCard extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                   color: amountColor),
             ),
-            const SizedBox(width: 4),
-            const Icon(Icons.chevron_right_rounded,
-                size: 18, color: AppColors.textSecondary),
           ],
         ),
       ),
@@ -315,16 +289,8 @@ class _EmptyState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 72,
-            height: 72,
-            decoration: const BoxDecoration(
-              color: AppColors.accentLight,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.receipt_long_rounded,
-                size: 34, color: AppColors.accent),
-          ),
+          Icon(Icons.receipt_long_rounded,
+              size: 48, color: AppColors.textSecondary.withOpacity(0.4)),
           const SizedBox(height: 14),
           const Text('이 날의 내역이 없어요',
               style: TextStyle(
